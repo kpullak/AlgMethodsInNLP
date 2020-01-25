@@ -1,0 +1,534 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>potfolioOptimization</title><meta name="generator" content="MATLAB 9.5"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2018-12-11"><meta name="DC.source" content="potfolioOptimization.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><pre class="codeinput"><span class="comment">% Input of the returns of different stocks over a period of 10 years</span>
+stockA_returns = [0.0063 0.0015 0.01861 0.0356 0.1011 0.0911 0.0981 0.1009 0.0670 0.1819];
+stockB_returns = [0.0066 0.00762 -0.0248 -0.0551 0.0112 0.0019 0.7891 0.0912 0.0781 0.0911];
+stockC_returns = [0.0107 -0.0684 0.02876 0.0320 0.1181 -0.01123 -0.00121 0.01231 0.0791 0.0812];
+stockD_returns = [0.0234 -0.0753 0.08761 0.0315 0.1039 -0.1009 -0.0121 0.0978 0.0782 0.1012];
+
+tic;
+stock_returns = [stockA_returns; stockB_returns; stockC_returns; stockD_returns];
+
+<span class="comment">% geometricMean of the returns of the stock of a company over years</span>
+geoMean = zeros(4,1);
+<span class="keyword">for</span> i = 1:4
+    geoMean(i) = findGeoMean(stock_returns(i,:));
+<span class="keyword">end</span>
+
+<span class="comment">% arithmeticMean of the returns of the stock of a company over years</span>
+arithmeticMean = zeros(4,1);
+<span class="keyword">for</span> i = 1:4
+    arithmeticMean(i) = mean(stock_returns(i,:));
+<span class="keyword">end</span>
+
+stdDevA = std(stockA_returns);
+stdDevB = std(stockB_returns);
+stdDevC = std(stockC_returns);
+stdDevD = std(stockD_returns);
+
+excessReturnsA = findExcessReturns(stockA_returns, arithmeticMean(1));
+excessReturnsB = findExcessReturns(stockB_returns, arithmeticMean(2));
+excessReturnsC = findExcessReturns(stockC_returns, arithmeticMean(3));
+excessReturnsD = findExcessReturns(stockD_returns, arithmeticMean(4));
+
+excessReturns = [excessReturnsA; excessReturnsB; excessReturnsC; excessReturnsD];
+
+varianceCovarianceMatrix = excessReturns*excessReturns';
+varianceCovarianceMatrix = 0.1*varianceCovarianceMatrix; <span class="comment">% Divinding the elements of the variance-covariance matrix with 10 the number of observations</span>
+
+syms <span class="string">x1</span> <span class="string">x2</span> <span class="string">x3</span> <span class="string">x4</span> <span class="string">mu</span> <span class="comment">% these four variables represent the weights associated to the portfolio</span>
+
+weights = [x1; x2; x3; x4]; <span class="comment">% this is a matrix which holds the portfolio weights</span>
+
+portfolioReturn = transpose(weights)*geoMean;
+portfolioVariance = 0.5*transpose(weights)*varianceCovarianceMatrix*weights;
+
+<span class="comment">%defined the objective functions:</span>
+f1 = -portfolioReturn;
+f2 = portfolioVariance;
+
+<span class="comment">% alpha is the weight which tells us the relative importance of</span>
+<span class="comment">% risk/reward we are targeting at</span>
+<span class="comment">% (eg; some one might think that they have to give 80% relative importance</span>
+<span class="comment">% to risk over returns; someone might think they have to give 50-50</span>
+<span class="comment">% importance to both risk and returns).</span>
+
+<span class="keyword">for</span> alphas = 0:.1:1
+
+    alphaFirst = alphas;
+    alphaSecond = 1-alphas;
+
+    X = [<span class="string">'Alpha1 is -&gt; '</span>, num2str(alphaFirst),<span class="string">' Alpha2 is -&gt; '</span>, num2str(alphaSecond)];
+    disp(X);
+
+    <span class="comment">% constraints: x1+x2+x3+x4 = 1</span>
+    <span class="comment">% generating the penalty function which would be the input to the exterior penalty method</span>
+    objectiveFunction = alphaFirst*f1 + alphaSecond*f2 + mu*(x1+x2+x3+x4-1)^2 + 0.001*mu*(x1^2 + x2^2 + x3^2 + x4^2);
+
+    x0 = [0.80;0.70;0.30;0.30];
+    n = 1;
+    epsilon = 10^-6;
+    x_new = x0;
+    x_old = x0;
+
+    mu_value = 10; <span class="comment">% Initialization value for mu</span>
+    T = table;
+    <span class="keyword">while</span> mu_value &lt; 10^8
+
+        mu_value = 10^n;
+        <span class="keyword">for</span> counter = 1:100
+            <span class="keyword">if</span> counter ~= 1 &amp;&amp; (findSmallEnough(x_old,x_new,epsilon))
+                <span class="keyword">break</span>;
+            <span class="keyword">end</span>
+
+            objectiveFunction = subs(objectiveFunction, mu, mu_value);
+            grad_f = gradient(objectiveFunction);
+            dk = -subs(grad_f,{x1,x2,x3,x4},{x_old(1),x_old(2),x_old(3),x_old(4)});
+
+            alpha = 10^-4;
+            neta = 0.9;
+            lambda = 1/5;
+
+            x_new = x_old + lambda*dk;
+
+            f_new = subs(objectiveFunction,{x1,x2,x3,x4},{x_new(1),x_new(2),x_new(3),x_new(4)});
+            g_new = subs(grad_f,{x1,x2,x3,x4},{x_new(1),x_new(2),x_new(3),x_new(4)});
+
+            f_old = subs(objectiveFunction,{x1,x2,x3,x4},{x_old(1),x_old(2),x_old(3),x_old(4)});
+            g_old = subs(grad_f,{x1,x2,x3,x4},{x_old(1),x_old(2),x_old(3),x_old(4)});
+
+            <span class="keyword">while</span> (f_new - f_old) &gt; (alpha*lambda*dk'*g_old) || (dk'*g_new) &lt; (neta*dk'*g_old)
+                lambda = lambda/5;
+                x_new = x_old + lambda*dk;
+                f_new = subs(objectiveFunction,{x1,x2,x3,x4},{x_new(1),x_new(2),x_new(3),x_new(4)});
+                g_new = subs(grad_f,{x1,x2,x3,x4},{x_new(1),x_new(2),x_new(3),x_new(4)});
+            <span class="keyword">end</span>
+
+            x_new = x_new + lambda*dk; <span class="comment">% --&gt; this is a redundant step as we already have the value we want</span>
+            x_old = x_new;
+
+            x_new(1) = vpa(x_new(1),6);
+            x_new(2) = vpa(x_new(2),6);
+            x_new(3) = vpa(x_new(3),6);
+            x_new(4) = vpa(x_new(4),6);
+            f_new = subs(objectiveFunction,{x1,x2,x3,x4},{x_new(1), x_new(2), x_new(3), x_new(4)});
+            x_t = table(n, mu_value, double(vpa(x_new(1),6)),double(vpa(x_new(2),6)), <span class="keyword">...</span>
+                    double(vpa(x_new(3),6)),double(vpa(x_new(4),6))); <span class="comment">% ,sum</span>
+            T = [T; x_t];
+        <span class="keyword">end</span>
+        n = n + 1;
+    <span class="keyword">end</span>
+
+    T.Properties.VariableNames = {<span class="string">'Iterations'</span> <span class="string">'Mu_Value'</span> <span class="string">'x_1'</span> <span class="string">'x_2'</span> <span class="string">'x_3'</span> <span class="string">'x_4'</span>}; <span class="comment">%  'Constraint_Equals_1'</span>
+    disp(T);
+    toc;
+<span class="keyword">end</span>
+
+<span class="comment">% this function is used to find the geometric mean of the rate of return</span>
+<span class="comment">% for a particular stock over the years</span>
+<span class="keyword">function</span> geometricMean = findGeoMean(stockA_returns)
+    geometricMean = 1;
+    <span class="keyword">for</span> n = 1 : length(stockA_returns)
+       geometricMean = geometricMean*(stockA_returns(n)+1);
+    <span class="keyword">end</span>
+    geometricMean = geometricMean^(1/length(stockA_returns)) - 1;
+<span class="keyword">end</span>
+
+<span class="comment">% this function is used to find the excess returns matrix which is</span>
+<span class="comment">% basically the value of (return - geometricMean of return)</span>
+<span class="keyword">function</span> excessReturns = findExcessReturns(stockA_returns, geoMeanA)
+    excessReturns = zeros(1,10);
+    <span class="keyword">for</span> n = 1 : length(stockA_returns)
+        excessReturns(n) = stockA_returns(n) - geoMeanA;
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+
+<span class="keyword">function</span> smallEnough = findSmallEnough(x_old,x_new, epsilon)
+
+    smallEnough = true;
+    <span class="keyword">for</span> i = 1:4
+        <span class="keyword">if</span> (abs((x_new(i)-x_old(i))/(x_old(i)))) &lt; epsilon
+            smallEnough = smallEnough*true;
+        <span class="keyword">else</span>
+            smallEnough = false;
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+</pre><pre class="codeoutput">Alpha1 is -&gt; 0 Alpha2 is -&gt; 1
+    Iterations    Mu_Value      x_1        x_2         x_3          x_4   
+    __________    ________    _______    _______    _________    _________
+
+        1             10      0.44765    0.34713    -0.052122    -0.052126
+        2            100       0.5465    0.44571     0.046926     0.046929
+        3           1000      0.51873    0.41761     0.019365     0.019371
+        4          10000      0.52649    0.42505     0.027333     0.027343
+        5          1e+05      0.52428    0.42252      0.02533     0.025345
+        6          1e+06      0.52487    0.42279     0.026126     0.026144
+        7          1e+07      0.52389    0.42021     0.026175     0.026214
+        8          1e+08      0.52479     0.4208     0.027286     0.027329
+
+Elapsed time is 3.367375 seconds.
+Alpha1 is -&gt; 0.1 Alpha2 is -&gt; 0.9
+    Iterations    Mu_Value      x_1        x_2         x_3          x_4   
+    __________    ________    _______    _______    _________    _________
+
+        1             10      0.44777    0.34732    -0.052077    -0.052073
+        2            100       0.5466    0.44594     0.046883     0.046899
+        3           1000      0.51887    0.41792     0.019284     0.019309
+        4          10000      0.52664    0.42544     0.027197     0.027232
+        5          1e+05      0.52446    0.42298     0.025145     0.025191
+        6          1e+06      0.52507    0.42333     0.025889     0.025945
+        7          1e+07      0.52419    0.42112     0.025685     0.025792
+        8          1e+08      0.52511    0.42178     0.026744     0.026862
+
+Elapsed time is 6.249558 seconds.
+Alpha1 is -&gt; 0.2 Alpha2 is -&gt; 0.8
+    Iterations    Mu_Value      x_1        x_2         x_3          x_4   
+    __________    ________    _______    _______    _________    _________
+
+        1             10      0.44789    0.34752    -0.052031    -0.052021
+        2            100       0.5467    0.44616      0.04684     0.046868
+        3           1000        0.519    0.41824     0.019203     0.019248
+        4          10000       0.5268    0.42582      0.02706     0.027121
+        5          1e+05      0.52463    0.42344     0.024959     0.025036
+        6          1e+06      0.52526    0.42386     0.025651     0.025745
+        7          1e+07      0.52511     0.4235      0.02556      0.02567
+        8          1e+08      0.52543    0.42277     0.026202     0.026394
+
+Elapsed time is 9.042821 seconds.
+Alpha1 is -&gt; 0.3 Alpha2 is -&gt; 0.7
+    Iterations    Mu_Value      x_1        x_2         x_3          x_4   
+    __________    ________    _______    _______    _________    _________
+
+        1             10      0.44801    0.34771    -0.051985    -0.051968
+        2            100      0.54681    0.44639     0.046796     0.046838
+        3           1000      0.51914    0.41855     0.019123     0.019186
+        4          10000      0.52695    0.42621     0.026924      0.02701
+        5          1e+05      0.52481    0.42391     0.024773     0.024882
+        6          1e+06      0.52546     0.4244     0.025414     0.025545
+        7          1e+07      0.52532    0.42411     0.025272     0.025426
+        8          1e+08      0.52576    0.42375     0.025659     0.025926
+
+Elapsed time is 12.041110 seconds.
+Alpha1 is -&gt; 0.4 Alpha2 is -&gt; 0.6
+    Iterations    Mu_Value      x_1        x_2        x_3          x_4   
+    __________    ________    _______    _______    ________    _________
+
+        1             10      0.44813    0.34791    -0.05194    -0.051916
+        2            100      0.54691    0.44661    0.046753     0.046807
+        3           1000      0.51928    0.41887    0.019042     0.019124
+        4          10000       0.5271    0.42659    0.026787     0.026899
+        5          1e+05      0.52498    0.42437    0.024587     0.024727
+        6          1e+06      0.52565    0.42493    0.025177     0.025346
+        7          1e+07      0.52554    0.42472    0.024984     0.025182
+        8          1e+08      0.52608    0.42473    0.025117     0.025458
+
+Elapsed time is 14.869227 seconds.
+Alpha1 is -&gt; 0.5 Alpha2 is -&gt; 0.5
+    Iterations    Mu_Value      x_1        x_2         x_3          x_4   
+    __________    ________    _______    _______    _________    _________
+
+        1             10      0.44825     0.3481    -0.051894    -0.051863
+        2            100      0.54701    0.44684      0.04671     0.046777
+        3           1000      0.51941    0.41918     0.018961     0.019063
+        4          10000      0.52725    0.42698     0.026651     0.026788
+        5          1e+05      0.52516    0.42483     0.024401     0.024573
+        6          1e+06      0.52585    0.42547     0.024939     0.025146
+        7          1e+07      0.52576    0.42533     0.024696     0.024937
+        8          1e+08       0.5264    0.42572     0.024574      0.02499
+
+Elapsed time is 17.728760 seconds.
+Alpha1 is -&gt; 0.6 Alpha2 is -&gt; 0.4
+    Iterations    Mu_Value      x_1        x_2         x_3         x_4   
+    __________    ________    _______    _______    _________    ________
+
+        1             10      0.44837    0.34829    -0.051848    -0.05181
+        2            100      0.54711    0.44706     0.046666    0.046746
+        3           1000      0.51955     0.4195      0.01888    0.019001
+        4          10000      0.52741    0.42736     0.026514    0.026676
+        5          1e+05      0.52533    0.42529     0.024215    0.024418
+        6          1e+06      0.52604    0.42601     0.024702    0.024946
+        7          1e+07      0.52597    0.42594     0.024407    0.024693
+        8          1e+08      0.52672    0.42671     0.024031    0.024521
+
+Elapsed time is 20.653535 seconds.
+Alpha1 is -&gt; 0.7 Alpha2 is -&gt; 0.3
+    Iterations    Mu_Value      x_1        x_2         x_3          x_4   
+    __________    ________    _______    _______    _________    _________
+
+        1             10      0.44849    0.34849    -0.051803    -0.051758
+        2            100      0.54721    0.44729     0.046623     0.046716
+        3           1000      0.51968    0.41981       0.0188     0.018939
+        4          10000      0.52756    0.42775     0.026378     0.026565
+        5          1e+05      0.52551    0.42575     0.024029     0.024264
+        6          1e+06      0.52624    0.42654     0.024464     0.024746
+        7          1e+07      0.52599    0.42659     0.022738     0.023255
+        8          1e+08      0.52704    0.42769     0.023487     0.024052
+
+Elapsed time is 23.513701 seconds.
+Alpha1 is -&gt; 0.8 Alpha2 is -&gt; 0.2
+    Iterations    Mu_Value      x_1        x_2         x_3          x_4   
+    __________    ________    _______    _______    _________    _________
+
+        1             10      0.44861    0.34868    -0.051757    -0.051705
+        2            100      0.54731    0.44751      0.04658     0.046685
+        3           1000      0.51982    0.42013     0.018719     0.018878
+        4          10000      0.52771    0.42813     0.026241     0.026454
+        5          1e+05      0.52568    0.42622     0.023843     0.024109
+        6          1e+06      0.52643    0.42708     0.024227     0.024546
+        7          1e+07      0.52629     0.4275     0.022246     0.022832
+        8          1e+08      0.52736    0.42868     0.022943     0.023583
+
+Elapsed time is 26.752641 seconds.
+Alpha1 is -&gt; 0.9 Alpha2 is -&gt; 0.1
+    Iterations    Mu_Value      x_1        x_2         x_3          x_4   
+    __________    ________    _______    _______    _________    _________
+
+        1             10      0.44873    0.34887    -0.051712    -0.051653
+        2            100      0.54742    0.44774     0.046536     0.046655
+        3           1000      0.51996    0.42044     0.018638     0.018816
+        4          10000      0.52786    0.42852     0.026105     0.026343
+        5          1e+05      0.52586    0.42668     0.023657     0.023954
+        6          1e+06      0.52663    0.42762     0.023989     0.024346
+        7          1e+07      0.52659    0.42842     0.021754     0.022408
+        8          1e+08      0.52768    0.42967     0.022399     0.023113
+
+Elapsed time is 29.469035 seconds.
+Alpha1 is -&gt; 1 Alpha2 is -&gt; 0
+    Iterations    Mu_Value      x_1        x_2         x_3         x_4   
+    __________    ________    _______    _______    _________    ________
+
+        1             10      0.44885    0.34907    -0.051666     -0.0516
+        2            100      0.54752    0.44796     0.046493    0.046624
+        3           1000      0.52009    0.42076     0.018557    0.018754
+        4          10000      0.52802     0.4289     0.025968    0.026231
+        5          1e+05      0.52603    0.42714     0.023471      0.0238
+        6          1e+06      0.52682    0.42815     0.023752    0.024146
+        7          1e+07      0.52689    0.42933     0.021261    0.021984
+        8          1e+08        0.528    0.43066     0.021855    0.022643
+
+Elapsed time is 32.117681 seconds.
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2018b</a><br></p></div><!--
+##### SOURCE BEGIN #####
+% Input of the returns of different stocks over a period of 10 years
+stockA_returns = [0.0063 0.0015 0.01861 0.0356 0.1011 0.0911 0.0981 0.1009 0.0670 0.1819];
+stockB_returns = [0.0066 0.00762 -0.0248 -0.0551 0.0112 0.0019 0.7891 0.0912 0.0781 0.0911];
+stockC_returns = [0.0107 -0.0684 0.02876 0.0320 0.1181 -0.01123 -0.00121 0.01231 0.0791 0.0812];
+stockD_returns = [0.0234 -0.0753 0.08761 0.0315 0.1039 -0.1009 -0.0121 0.0978 0.0782 0.1012];
+
+tic;
+stock_returns = [stockA_returns; stockB_returns; stockC_returns; stockD_returns];
+
+% geometricMean of the returns of the stock of a company over years
+geoMean = zeros(4,1);
+for i = 1:4
+    geoMean(i) = findGeoMean(stock_returns(i,:));
+end
+
+% arithmeticMean of the returns of the stock of a company over years
+arithmeticMean = zeros(4,1);
+for i = 1:4
+    arithmeticMean(i) = mean(stock_returns(i,:));
+end
+
+stdDevA = std(stockA_returns);
+stdDevB = std(stockB_returns);
+stdDevC = std(stockC_returns);
+stdDevD = std(stockD_returns);
+
+excessReturnsA = findExcessReturns(stockA_returns, arithmeticMean(1));
+excessReturnsB = findExcessReturns(stockB_returns, arithmeticMean(2));
+excessReturnsC = findExcessReturns(stockC_returns, arithmeticMean(3));
+excessReturnsD = findExcessReturns(stockD_returns, arithmeticMean(4));
+
+excessReturns = [excessReturnsA; excessReturnsB; excessReturnsC; excessReturnsD];
+
+varianceCovarianceMatrix = excessReturns*excessReturns';
+varianceCovarianceMatrix = 0.1*varianceCovarianceMatrix; % Divinding the elements of the variance-covariance matrix with 10 the number of observations
+
+syms x1 x2 x3 x4 mu % these four variables represent the weights associated to the portfolio
+
+weights = [x1; x2; x3; x4]; % this is a matrix which holds the portfolio weights
+
+portfolioReturn = transpose(weights)*geoMean;
+portfolioVariance = 0.5*transpose(weights)*varianceCovarianceMatrix*weights;
+
+%defined the objective functions:
+f1 = -portfolioReturn;
+f2 = portfolioVariance;
+
+% alpha is the weight which tells us the relative importance of
+% risk/reward we are targeting at 
+% (eg; some one might think that they have to give 80% relative importance
+% to risk over returns; someone might think they have to give 50-50
+% importance to both risk and returns).
+
+for alphas = 0:.1:1
+
+    alphaFirst = alphas;
+    alphaSecond = 1-alphas;
+    
+    X = ['Alpha1 is -> ', num2str(alphaFirst),' Alpha2 is -> ', num2str(alphaSecond)];
+    disp(X);
+
+    % constraints: x1+x2+x3+x4 = 1
+    % generating the penalty function which would be the input to the exterior penalty method
+    objectiveFunction = alphaFirst*f1 + alphaSecond*f2 + mu*(x1+x2+x3+x4-1)^2 + 0.001*mu*(x1^2 + x2^2 + x3^2 + x4^2);
+
+    x0 = [0.80;0.70;0.30;0.30];
+    n = 1;
+    epsilon = 10^-6;
+    x_new = x0;
+    x_old = x0;
+
+    mu_value = 10; % Initialization value for mu
+    T = table;
+    while mu_value < 10^8
+        
+        mu_value = 10^n;
+        for counter = 1:100
+            if counter ~= 1 && (findSmallEnough(x_old,x_new,epsilon))
+                break;
+            end
+
+            objectiveFunction = subs(objectiveFunction, mu, mu_value);
+            grad_f = gradient(objectiveFunction);
+            dk = -subs(grad_f,{x1,x2,x3,x4},{x_old(1),x_old(2),x_old(3),x_old(4)});
+
+            alpha = 10^-4;
+            neta = 0.9;
+            lambda = 1/5;
+
+            x_new = x_old + lambda*dk;
+
+            f_new = subs(objectiveFunction,{x1,x2,x3,x4},{x_new(1),x_new(2),x_new(3),x_new(4)});
+            g_new = subs(grad_f,{x1,x2,x3,x4},{x_new(1),x_new(2),x_new(3),x_new(4)});
+
+            f_old = subs(objectiveFunction,{x1,x2,x3,x4},{x_old(1),x_old(2),x_old(3),x_old(4)});
+            g_old = subs(grad_f,{x1,x2,x3,x4},{x_old(1),x_old(2),x_old(3),x_old(4)});
+
+            while (f_new - f_old) > (alpha*lambda*dk'*g_old) || (dk'*g_new) < (neta*dk'*g_old)
+                lambda = lambda/5;
+                x_new = x_old + lambda*dk;
+                f_new = subs(objectiveFunction,{x1,x2,x3,x4},{x_new(1),x_new(2),x_new(3),x_new(4)});
+                g_new = subs(grad_f,{x1,x2,x3,x4},{x_new(1),x_new(2),x_new(3),x_new(4)});
+            end
+            
+            x_new = x_new + lambda*dk; % REPLACE_WITH_DASH_DASH> this is a redundant step as we already have the value we want
+            x_old = x_new;
+            
+            x_new(1) = vpa(x_new(1),6);
+            x_new(2) = vpa(x_new(2),6);
+            x_new(3) = vpa(x_new(3),6);
+            x_new(4) = vpa(x_new(4),6);
+            f_new = subs(objectiveFunction,{x1,x2,x3,x4},{x_new(1), x_new(2), x_new(3), x_new(4)});
+            x_t = table(n, mu_value, double(vpa(x_new(1),6)),double(vpa(x_new(2),6)), ...
+                    double(vpa(x_new(3),6)),double(vpa(x_new(4),6))); % ,sum
+            T = [T; x_t];
+        end
+        n = n + 1;
+    end
+
+    T.Properties.VariableNames = {'Iterations' 'Mu_Value' 'x_1' 'x_2' 'x_3' 'x_4'}; %  'Constraint_Equals_1'
+    disp(T);
+    toc;
+end
+
+% this function is used to find the geometric mean of the rate of return
+% for a particular stock over the years
+function geometricMean = findGeoMean(stockA_returns)
+    geometricMean = 1;
+    for n = 1 : length(stockA_returns)
+       geometricMean = geometricMean*(stockA_returns(n)+1);
+    end
+    geometricMean = geometricMean^(1/length(stockA_returns)) - 1;
+end
+
+% this function is used to find the excess returns matrix which is
+% basically the value of (return - geometricMean of return)
+function excessReturns = findExcessReturns(stockA_returns, geoMeanA)
+    excessReturns = zeros(1,10);
+    for n = 1 : length(stockA_returns)
+        excessReturns(n) = stockA_returns(n) - geoMeanA;
+    end
+end
+
+function smallEnough = findSmallEnough(x_old,x_new, epsilon)
+
+    smallEnough = true;
+    for i = 1:4
+        if (abs((x_new(i)-x_old(i))/(x_old(i)))) < epsilon
+            smallEnough = smallEnough*true;
+        else 
+            smallEnough = false;
+        end
+    end
+end
+##### SOURCE END #####
+--></body></html>
